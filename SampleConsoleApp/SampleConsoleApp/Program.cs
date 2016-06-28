@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
+using Hl7.Fhir.Serialization;
 using System.Configuration;
+using RestSharp;
 
 namespace SampleConsoleApp
 {
@@ -18,6 +20,7 @@ namespace SampleConsoleApp
         {
 
             var client = new FhirClient(new Uri(apiURL));
+            var restClient = new RestClient(apiURL);
 
             var appointments = FindAppointments(client);
 
@@ -27,7 +30,19 @@ namespace SampleConsoleApp
             {
                 Appointment appt = (Appointment)appointment.Resource;
                 Console.WriteLine(String.Format("{0} - {1}", appt.Start, appt.Description));
-
+                var patientParticipant = appt.Participant.FirstOrDefault(part => part.Actor.Reference.StartsWith("Patient"));
+                if(patientParticipant != null)
+                {
+                    var patientRequest = new RestRequest(patientParticipant.Actor.Reference, Method.GET);
+                    patientRequest.AddQueryParameter("apiKey", apiKey);
+                    var response = restClient.Get(patientRequest);
+                    
+                    if(response.ResponseStatus == ResponseStatus.Completed)
+                    {
+                        var patient = (Patient)FhirParser.ParseFromJson(response.Content);
+                        Console.WriteLine(patient.BirthDate);
+                    }                    
+                }
             }
             Console.ReadKey();
         }
