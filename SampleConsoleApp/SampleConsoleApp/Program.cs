@@ -5,17 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
+using System.Configuration;
 
 namespace SampleConsoleApp
 {
     class Program
     {
-        static string apiKey = "";
-        static string apiURL = "";
+        static string apiKey = ConfigurationManager.AppSettings["apiKey"];
+        static string apiURL = ConfigurationManager.AppSettings["apiUrl"];
 
         static void Main(string[] args)
         {
-            string apiURL = "https://testapi.ccf.org/fhir/";
 
             var client = new FhirClient(new Uri(apiURL));
 
@@ -27,7 +27,9 @@ namespace SampleConsoleApp
             {
                 Appointment appt = (Appointment)appointment.Resource;
                 Console.WriteLine(String.Format("{0} - {1}", appt.Start, appt.Description));
+
             }
+            Console.ReadKey();
         }
 
         static Bundle FindAppointments(FhirClient client)
